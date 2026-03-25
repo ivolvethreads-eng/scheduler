@@ -144,7 +144,7 @@ if (data.length < 2) {
   return;
 }
 
-  const res = await fetch("http://127.0.0.1:8000/schedule", {
+  const res = await fetch("https://scheduler-production-06a7.up.railway.app/schedule", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(data)
