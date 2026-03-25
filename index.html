@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fair Meeting Scheduler</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-10">
+
+  <div class="max-w-2xl mx-auto bg-white p-6 rounded-2xl shadow">
+
+    <h1 class="text-2xl font-bold mb-4">
+      Who's getting screwed in your meetings?
+    </h1>
+    
+
+    <!-- MEMBERS -->
+    <div id="members"></div>
+
+    <button onclick="addMember()" class="bg-gray-200 px-3 py-1 rounded mb-4">
+      + Add Member
+    </button>
+
+    <br>
+
+    <button onclick="run()" class="bg-black text-white px-4 py-2 rounded">
+      Check Fairness
+    </button>
+
+    <div id="output" class="mt-6"></div>
+
+  </div>
+
+<script>
+    
+    const timezones = Intl.supportedValuesOf('timeZone');
+
+function setupTimezoneSearch() {
+  document.querySelectorAll(".timezone-input").forEach((input) => {
+
+    const list = input.nextElementSibling;
+
+    input.addEventListener("input", () => {
+      const value = input.value.toLowerCase();
+      list.innerHTML = "";
+
+      if (!value) {
+        list.classList.add("hidden");
+        return;
+      }
+
+      const filtered = timezones.filter(tz =>
+        tz.toLowerCase().includes(value)
+      ).slice(0, 20);
+
+      filtered.forEach(tz => {
+        const item = document.createElement("div");
+        item.className = "p-1 hover:bg-gray-200 cursor-pointer";
+        item.innerText = tz;
+
+        item.onclick = () => {
+          input.value = tz;
+          list.classList.add("hidden");
+        };
+
+        list.appendChild(item);
+      });
+
+      list.classList.remove("hidden");
+    });
+
+    input.addEventListener("blur", () => {
+      setTimeout(() => list.classList.add("hidden"), 200);
+    });
+
+  });
+}
+function addMember(name="", timezone="", start="09:00", end="17:00") {
+  const container = document.getElementById("members");
+
+  const div = document.createElement("div");
+  div.className = "border p-3 mb-3 rounded";
+
+  div.innerHTML = `
+  <div class="flex items-center justify-between mb-2">
+    <p class="font-semibold">Member</p>
+    <button onclick="this.closest('div').parentElement.remove()" 
+      class="text-red-500 text-sm">
+      Remove
+    </button>
+  </div>
+
+  <input placeholder="Name" value="${name}" class="border p-1 mr-2" />
+  
+  <input 
+    type="text"
+    placeholder="Search timezone..."
+    value="${timezone}"
+    class="border p-1 mr-2 timezone-input"
+  />
+  <div class="bg-white border mt-1 hidden max-h-40 overflow-y-auto timezone-list"></div>
+
+  <input type="time" value="${start}" class="border p-1 mr-2" />
+  <input type="time" value="${end}" class="border p-1 mr-2" />
+    `;
+
+  container.appendChild(div);
+
+  setupTimezoneSearch();
+}
+
+// default 2 users
+addMember("Alex", "Asia/Kolkata");
+addMember("John", "America/New_York");
+
+
+
+async function run() {
+  const membersDiv = document.getElementById("members").children;
+  let data = [];
+
+for (let div of membersDiv) {
+  const inputs = div.getElementsByTagName("input");
+
+  const name = inputs[0].value.trim();
+  const timezone = inputs[1].value.trim();
+  const start = inputs[2].value;
+  const end = inputs[3].value;
+
+  // 🔥 SKIP empty members
+  if (!name || !timezone) continue;
+
+  data.push({
+    name,
+    timezone,
+    start,
+    end
+  });
+}
+
+// 🔥 If no valid members
+if (data.length < 2) {
+  alert("Please add at least 2 valid members");
+  return;
+}
+
+  const res = await fetch("http://127.0.0.1:8000/schedule", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
+  });
+
+  const result = await res.json();
+
+  let html = "";
+
+  if (result.mode === "overlap") {
+    html += `<p class="text-green-600 font-bold">Good news — your team can meet without hurting anyone 🎉</p>`;
+  } else {
+
+    html += `<h2 class="text-xl font-bold mb-2">Who's taking the hit?</h2>`;
+
+    html += `
+        <p class="text-sm text-gray-600 mt-2">
+        We rotate inconvenient times so the same person isn’t always affected.
+        </p>
+    `;
+
+    for (let person in result.fairness_score) {
+      html += `<p>👉 ${person} got the bad time ${result.fairness_score[person]}x</p>`;
+    }
+
+    html += `<p class="text-red-600 font-bold mt-3">
+      Without rotation, the same person usually gets screwed every time.
+    </p>`;
+
+    html += `<h2 class="text-xl font-bold mt-4 mb-2">Fair Schedule</h2>`;
+
+    result.calendar_links.forEach(item => {
+      html += `
+        <div class="border p-2 mb-2 rounded">
+          <p>${item.day} → ${item.assigned_to}</p>
+          <a href="${item.calendar_link}" target="_blank" class="text-blue-600">
+            Add to Calendar
+          </a>
+        </div>
+      `;
+    });
+
+    // 💸 PAYWALL TRIGGER
+    html += `
+      <div class="mt-6 p-4 border rounded bg-yellow-50">
+        <p class="font-bold">Want fairness tracking for your team over time?</p>
+        <button onclick="window.location.href='premium.html'" 
+            class="bg-black text-white px-4 py-2 mt-2 rounded">
+            Unlock Premium (₹299)
+            </button>
+      </div>
+    `;
+  }
+
+  document.getElementById("output").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
