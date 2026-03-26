@@ -9,13 +9,13 @@
 
   <div class="max-w-2xl mx-auto bg-white p-6 rounded-2xl shadow">
 
-    <h1 class="text-2xl font-bold mb-4">
-      Who's getting screwed in your meetings?
+    <h1 class="text-2xl font-bold mb-2">
+      Are your meetings unfair across timezones?
     </h1>
+
     <p class="text-gray-600 mb-4">
-  Automatically find fair meeting times for global teams — no one gets stuck with bad hours.
-</p>
-    
+      See who’s taking the hit — and fix it instantly.
+    </p>
 
     <!-- MEMBERS -->
     <div id="members"></div>
@@ -35,8 +35,8 @@
   </div>
 
 <script>
-    
-    const timezones = Intl.supportedValuesOf('timeZone');
+
+const timezones = Intl.supportedValuesOf('timeZone');
 
 function setupTimezoneSearch() {
   document.querySelectorAll(".timezone-input").forEach((input) => {
@@ -78,6 +78,7 @@ function setupTimezoneSearch() {
 
   });
 }
+
 function addMember(name="", timezone="", start="09:00", end="17:00") {
   const container = document.getElementById("members");
 
@@ -105,47 +106,37 @@ function addMember(name="", timezone="", start="09:00", end="17:00") {
 
   <input type="time" value="${start}" class="border p-1 mr-2" />
   <input type="time" value="${end}" class="border p-1 mr-2" />
-    `;
+  `;
 
   container.appendChild(div);
-
   setupTimezoneSearch();
 }
 
-// default 2 users
+// default users
 addMember("Alex", "Asia/Kolkata");
 addMember("John", "America/New_York");
-
-
 
 async function run() {
   const membersDiv = document.getElementById("members").children;
   let data = [];
 
-for (let div of membersDiv) {
-  const inputs = div.getElementsByTagName("input");
+  for (let div of membersDiv) {
+    const inputs = div.getElementsByTagName("input");
 
-  const name = inputs[0].value.trim();
-  const timezone = inputs[1].value.trim();
-  const start = inputs[2].value;
-  const end = inputs[3].value;
+    const name = inputs[0].value.trim();
+    const timezone = inputs[1].value.trim();
+    const start = inputs[2].value;
+    const end = inputs[3].value;
 
-  // 🔥 SKIP empty members
-  if (!name || !timezone) continue;
+    if (!name || !timezone) continue;
 
-  data.push({
-    name,
-    timezone,
-    start,
-    end
-  });
-}
+    data.push({ name, timezone, start, end });
+  }
 
-// 🔥 If no valid members
-if (data.length < 2) {
-  alert("Please add at least 2 valid members");
-  return;
-}
+  if (data.length < 2) {
+    alert("Please add at least 2 valid members");
+    return;
+  }
 
   const res = await fetch("https://scheduler-production-06a7.up.railway.app/schedule", {
     method: "POST",
@@ -157,27 +148,37 @@ if (data.length < 2) {
 
   let html = "";
 
+  // 🔴 CURRENT (UNFAIR)
+  const firstPerson = data[0].name;
+
+  html += `<h2 class="text-xl font-bold mb-2">Current (Unfair)</h2>`;
+  html += `<p class="text-red-600 mb-3">
+    ${firstPerson} would take the bad time every meeting.
+  </p>`;
+
+  // 🟢 FAIR RESULT
   if (result.mode === "overlap") {
-    html += `<p class="text-green-600 font-bold">Good news — your team can meet without hurting anyone 🎉</p>`;
+
+    html += `<h2 class="text-xl font-bold mt-4 mb-2">Better Option</h2>`;
+    html += `<p class="text-green-600 font-bold">
+      Your team can meet without hurting anyone 🎉
+    </p>`;
+
   } else {
 
-    html += `<h2 class="text-xl font-bold mb-2">Who's taking the hit?</h2>`;
+    html += `<h2 class="text-xl font-bold mt-4 mb-2">Fair Rotation</h2>`;
 
     html += `
-        <p class="text-sm text-gray-600 mt-2">
+      <p class="text-sm text-gray-600 mt-2">
         We rotate inconvenient times so the same person isn’t always affected.
-        </p>
+      </p>
     `;
 
     for (let person in result.fairness_score) {
-      html += `<p>👉 ${person} got the bad time ${result.fairness_score[person]}x</p>`;
+      html += `<p>👉 ${person} gets the bad time ${result.fairness_score[person]}x</p>`;
     }
 
-    html += `<p class="text-red-600 font-bold mt-3">
-      Without rotation, the same person usually gets screwed every time.
-    </p>`;
-
-    html += `<h2 class="text-xl font-bold mt-4 mb-2">Fair Schedule</h2>`;
+    html += `<h3 class="text-lg font-bold mt-4 mb-2">Schedule</h3>`;
 
     result.calendar_links.forEach(item => {
       html += `
@@ -190,14 +191,14 @@ if (data.length < 2) {
       `;
     });
 
-    // 💸 PAYWALL TRIGGER
+    // CTA
     html += `
       <div class="mt-6 p-4 border rounded bg-yellow-50">
-        <p class="font-bold">Want fairness tracking for your team over time?</p>
+        <p class="font-bold">Stop one person always suffering → $5</p>
         <button onclick="window.location.href='premium.html'" 
-            class="bg-black text-white px-4 py-2 mt-2 rounded">
-            Unlock Premium ($5)
-            </button>
+          class="bg-black text-white px-4 py-2 mt-2 rounded">
+          Get Early Access
+        </button>
       </div>
     `;
   }
