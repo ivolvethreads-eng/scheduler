@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Premium</title>
+  <title>Syncra Early Access</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -10,32 +10,40 @@
 <div class="bg-white p-6 rounded shadow max-w-md text-center">
 
   <h1 class="text-xl font-bold mb-3">
-    Stop unfair meetings in your team
+    Get Early Access to Syncra
   </h1>
 
   <p class="mb-4 text-gray-600">
-    Ensure no one is always stuck with early mornings or late nights.
-    Automatically rotate inconvenient meeting times across your team.
+    Stop one person always getting stuck with bad meeting times.
+    We're testing this with early teams.
   </p>
 
   <ul class="text-left text-sm mb-4 space-y-1">
     <li>✅ Fair rotation across timezones</li>
-    <li>✅ Track who’s taking the hit over time</li>
-    <li>✅ Generate simple team fairness reports</li>
+    <li>✅ No one always suffers</li>
+    <li>✅ Simple team scheduling</li>
   </ul>
 
-  <p class="text-lg font-bold mb-2">Free during early testing</p>
-
   <p class="text-sm text-gray-500 mb-4">
-    Price will increase after initial testing
+    Free during early testing — limited access
   </p>
 
-  <button onclick="alert('Not live yet — DM or join waitlist')" 
+  <button onclick="joinWaitlist()" 
     class="bg-black text-white px-4 py-2 rounded w-full">
-    Get Early Access
+    Join Waitlist
   </button>
 
+  <p class="text-xs text-gray-400 mt-4">
+    Built quietly by Vanto
+  </p>
+
 </div>
+
+<script>
+function joinWaitlist() {
+  window.open("https://forms.gle/dRdwqqsyCYoLnX5W7", "_blank");
+}
+</script>
 
 </body>
 </html>
