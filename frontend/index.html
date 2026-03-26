@@ -1,36 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Fair Meeting Scheduler</title>
+  <title>Syncra</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100 p-10">
+<body class="bg-gray-100">
 
-  <div class="max-w-2xl mx-auto bg-white p-6 rounded-2xl shadow">
+  <div class="max-w-3xl mx-auto p-6">
 
-    <h1 class="text-2xl font-bold mb-2">
-      Are your meetings unfair across timezones?
-    </h1>
+    <!-- HEADER -->
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-xl font-bold">Syncra</h1>
+      <p class="text-sm text-gray-500">by Vanto</p>
+    </div>
 
-    <p class="text-gray-600 mb-4">
-      See who’s taking the hit — and fix it instantly.
-    </p>
+    <!-- HERO -->
+    <div class="bg-white p-6 rounded-2xl shadow mb-6">
+      <h2 class="text-2xl font-bold mb-2">
+        Are your meetings unfair across timezones?
+      </h2>
+      <p class="text-gray-600">
+        See who’s taking the hit — and fix it instantly.
+      </p>
+    </div>
 
-    <!-- MEMBERS -->
-    <div id="members"></div>
+    <!-- INPUT CARD -->
+    <div class="bg-white p-6 rounded-2xl shadow mb-6">
 
-    <button onclick="addMember()" class="bg-gray-200 px-3 py-1 rounded mb-4">
-      + Add Member
-    </button>
+      <div id="members"></div>
 
-    <br>
+      <button onclick="addMember()" class="bg-gray-200 px-3 py-1 rounded mb-4">
+        + Add Member
+      </button>
 
-    <button onclick="run()" class="bg-black text-white px-4 py-2 rounded">
-      Check Fairness
-    </button>
+      <br>
 
-    <div id="output" class="mt-6"></div>
+      <button onclick="run()" class="bg-black text-white px-4 py-2 rounded w-full">
+        Check Fairness
+      </button>
+
+    </div>
+
+    <!-- OUTPUT -->
+    <div id="output" class="space-y-4"></div>
 
   </div>
 
@@ -86,26 +99,28 @@ function addMember(name="", timezone="", start="09:00", end="17:00") {
   div.className = "border p-3 mb-3 rounded";
 
   div.innerHTML = `
-  <div class="flex items-center justify-between mb-2">
-    <p class="font-semibold">Member</p>
-    <button onclick="this.closest('div').parentElement.remove()" 
-      class="text-red-500 text-sm">
-      Remove
-    </button>
-  </div>
+    <div class="flex items-center justify-between mb-2">
+      <p class="font-semibold">Member</p>
+      <button onclick="this.closest('div').parentElement.remove()" 
+        class="text-red-500 text-sm">
+        Remove
+      </button>
+    </div>
 
-  <input placeholder="Name" value="${name}" class="border p-1 mr-2" />
-  
-  <input 
-    type="text"
-    placeholder="Search timezone..."
-    value="${timezone}"
-    class="border p-1 mr-2 timezone-input"
-  />
-  <div class="bg-white border mt-1 hidden max-h-40 overflow-y-auto timezone-list"></div>
+    <input placeholder="Name" value="${name}" class="border p-1 mr-2 mb-2 w-full" />
+    
+    <input 
+      type="text"
+      placeholder="Search timezone..."
+      value="${timezone}"
+      class="border p-1 mr-2 timezone-input mb-2 w-full"
+    />
+    <div class="bg-white border mt-1 hidden max-h-40 overflow-y-auto timezone-list"></div>
 
-  <input type="time" value="${start}" class="border p-1 mr-2" />
-  <input type="time" value="${end}" class="border p-1 mr-2" />
+    <div class="flex gap-2">
+      <input type="time" value="${start}" class="border p-1 w-full" />
+      <input type="time" value="${end}" class="border p-1 w-full" />
+    </div>
   `;
 
   container.appendChild(div);
@@ -148,52 +163,61 @@ async function run() {
 
   let html = "";
 
-  // 🔴 CURRENT (UNFAIR)
   const firstPerson = data[0].name;
 
-  html += `<h2 class="text-xl font-bold mb-2">Current (Unfair)</h2>`;
-  html += `<p class="text-red-600 mb-3">
-    ${firstPerson} would take the bad time every meeting.
-  </p>`;
+  // 🔴 CURRENT
+  html += `
+    <div class="bg-white p-4 rounded-xl shadow border-l-4 border-red-500">
+      <h2 class="font-bold mb-1">Current (Unfair)</h2>
+      <p class="text-red-600">
+        ${firstPerson} takes the bad time every meeting.
+      </p>
+    </div>
+  `;
 
-  // 🟢 FAIR RESULT
+  // 🟢 RESULT
   if (result.mode === "overlap") {
 
-    html += `<h2 class="text-xl font-bold mt-4 mb-2">Better Option</h2>`;
-    html += `<p class="text-green-600 font-bold">
-      Your team can meet without hurting anyone 🎉
-    </p>`;
+    html += `
+      <div class="bg-white p-4 rounded-xl shadow border-l-4 border-green-500">
+        <h2 class="font-bold mb-1">Better Option</h2>
+        <p class="text-green-600 font-semibold">
+          Your team can meet without hurting anyone 🎉
+        </p>
+      </div>
+    `;
 
   } else {
 
-    html += `<h2 class="text-xl font-bold mt-4 mb-2">Fair Rotation</h2>`;
-
     html += `
-      <p class="text-sm text-gray-600 mt-2">
-        We rotate inconvenient times so the same person isn’t always affected.
-      </p>
+      <div class="bg-white p-4 rounded-xl shadow border-l-4 border-green-500">
+        <h2 class="font-bold mb-2">Fair Rotation</h2>
+        <p class="text-sm text-gray-600 mb-2">
+          Rotate inconvenient times so no one always suffers.
+        </p>
     `;
 
     for (let person in result.fairness_score) {
-      html += `<p>👉 ${person} gets the bad time ${result.fairness_score[person]}x</p>`;
+      html += `<p>👉 ${person}: ${result.fairness_score[person]}x</p>`;
     }
 
-    html += `<h3 class="text-lg font-bold mt-4 mb-2">Schedule</h3>`;
+    html += `<div class="mt-3 space-y-2">`;
 
     result.calendar_links.forEach(item => {
       html += `
-        <div class="border p-2 mb-2 rounded">
+        <div class="border p-2 rounded">
           <p>${item.day} → ${item.assigned_to}</p>
-          <a href="${item.calendar_link}" target="_blank" class="text-blue-600">
+          <a href="${item.calendar_link}" target="_blank" class="text-blue-600 text-sm">
             Add to Calendar
           </a>
         </div>
       `;
     });
 
-    // CTA
+    html += `</div></div>`;
+
     html += `
-      <div class="mt-6 p-4 border rounded bg-yellow-50">
+      <div class="bg-yellow-50 p-4 rounded-xl border mt-4 text-center">
         <p class="font-bold">Stop one person always suffering → $5</p>
         <button onclick="window.location.href='premium.html'" 
           class="bg-black text-white px-4 py-2 mt-2 rounded">
